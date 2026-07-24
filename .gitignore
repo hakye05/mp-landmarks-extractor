@@ -1,0 +1,12 @@
+# Virtual Environment
+.idea/
+.venv/
+venv/
+env/
+
+__pycache__/
+*.pyc
+
+# Dataset folder
+datasets/
+/datasets/

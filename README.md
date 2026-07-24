@@ -1,1 +1,1 @@
-# mp-landmarks-extractor
+# MediaPipe Landmark Data Extractor
