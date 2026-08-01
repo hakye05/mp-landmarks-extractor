@@ -4,6 +4,12 @@ import mediapipe as mp
 
 
 def normalize_landmarks(hand_landmarks):
+    """Normalizes raw hand landmarks by pinning the wrist to the origin point
+    and scaling coordinates uniformly based on the maximum absolute value.
+
+    :param hand_landmarks: Raw hand landmarks containing x, y and z attributes.
+    :return: normalized hand landmarks coordinates.
+    """
     coords = np.array([[lm.x, lm.y, lm.z] for lm in hand_landmarks])
 
     # Pin wrist to origin and normalize scale
@@ -16,6 +22,12 @@ def normalize_landmarks(hand_landmarks):
 
 
 def assign_hands(result):
+    """Assigns detected hand landmarks to left/right categories based on MediaPipe's
+    handedness classification.
+
+    :param result: The results of MediaPipe's extracted hand landmarks
+    :return: (current_left, current_right) assigned landmarks or None values.
+    """
     current_left, current_right = None, None
 
     if not result.hand_landmarks or not result.handedness:
@@ -37,6 +49,14 @@ def assign_hands(result):
 
 
 def build_frame_vector(hand_obj, target_vector_size, normalizer):
+    """Builds a vector representation of hand landmarks. Contains a flag for visibility
+    of the hand (1 if hand is present, 0 otherwise).
+
+    :param hand_obj: The hand landmark or None value (if the hand is missing).
+    :param target_vector_size: Expected length of the normalized coordinate features.
+    :param normalizer: Function to normalize the hand landmarks.
+    :return: A vector representation of the hand landmarks where presence flag is followed by the respective hand coordinates.
+    """
     if hand_obj is None:
         return [0] + [0] * target_vector_size
 
@@ -46,6 +66,17 @@ def build_frame_vector(hand_obj, target_vector_size, normalizer):
 
 
 def process_frame(frame, frame_idx, fps, last_processed_timestamp, hand_detector, normalizer, target_vector_size):
+    """Processes a single frame to detect hands, assign hand labels, normalize data and construct a vector representation.
+
+    :param frame: Frame image from OpenCv.
+    :param frame_idx: Current frame index.
+    :param fps: Frames per second of the video.
+    :param last_processed_timestamp: Timestamp of the last frame being processed.
+    :param hand_detector: MediaPipe's hand detection.
+    :param normalizer: Function to normalize the hand landmarks.
+    :param target_vector_size: Expected length of the normalized coordinate features.
+    :return: A vector representation of the hand landmarks and currently processed timestamp.
+    """
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     mp_image = mp.Image(
@@ -75,6 +106,16 @@ def process_frame(frame, frame_idx, fps, last_processed_timestamp, hand_detector
 
 
 def process_video(video_path, hand_detector, normalizer, target_vector_size, target_frames_count=24):
+    """Samples frames uniformly from a video file, extracts hand landmarks, normalizes them and pads the sequence to target
+    length.
+
+    :param video_path: Path to video file.
+    :param hand_detector: MediaPipe's hand detection.
+    :param normalizer: Function to normalize the hand landmarks.
+    :param target_vector_size: Expected length of the normalized coordinate features.
+    :param target_frames_count: Number of frames to extract.
+    :return: A 2D numpy array containing normalized hand landmarks across the sampled frames.
+    """
     cap = cv2.VideoCapture(video_path)
 
     if not cap.isOpened():
