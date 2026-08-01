@@ -1,33 +1,37 @@
+import logging
 import yaml
 import numpy as np
 import pandas as pd
 import os
 
 from src.engine import initialize_detector
-from src.preprocessing import normalize_hand_3d, normalize_hand_2d, process_video
+from src.preprocessing import process_video, normalize_landmarks
 
 
-with open("config_3d_data_extraction.yaml", "r") as f:
+# Setup logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+# Load configuration file
+with open("config_extraction.yaml", "r") as f:
     config = yaml.safe_load(f)
 
-hand_detector = initialize_detector(config['model_path'])
-normalizer = normalize_hand_3d if config['dimension'] == 'xyz' else normalize_hand_2d
+hand_detector = initialize_detector(config['mediapipe_path'])
 target_vector_size = config['target_vector_size']
 target_frame_count = config['target_frame_count']
-
 csv_path = config['csv_path']
 videos_dir = config['videos_dir']
 output_dir = config['output_dir']
+normalizer = normalize_landmarks
 
-os.makedirs(output_dir, exist_ok=True)
+# Prepare data and directories
 df = pd.read_csv(csv_path, sep="\t")
 df["file_path"] = videos_dir + df["attachment_id"] + ".mp4"
+os.makedirs(output_dir, exist_ok=True)
 
-# Main loop for extraction
+# Extraction Loop
 for i, row in df.iterrows():
     video_path = row["file_path"]
     attachment_id = row["attachment_id"]
-    print(f"[{i+1}/{len(df)}] Processing {attachment_id}")
     data = process_video(video_path, hand_detector, normalizer, target_vector_size, target_frame_count)
 
     if data is None:

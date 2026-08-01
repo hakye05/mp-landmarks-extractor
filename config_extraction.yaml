@@ -1,0 +1,7 @@
+mediapipe_path: models/hand_landmarker.task
+csv_path: datasets/ANNOTATIONS_CSV
+csv_separator: tabular
+videos_dir: datasets/VIDEOS_FOLDER
+output_dir: datasets/LANDMARKS_OUTPUT
+target_frame_count: 24
+target_vector_size: 63
